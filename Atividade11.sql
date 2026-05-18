@@ -176,3 +176,36 @@ BEGIN
 END;
 $$;
 ----------------------------------------------------------------------------------------------------
+-- 1.5 Adicione um procedimento ao sistema do restaurante. 
+CREATE OR REPLACE PROCEDURE sp_cadastra_clientes(
+   OUT mensagem VARCHAR,
+   VARIADIC nomes VARCHAR []
+) LANGUAGE plpgsql
+AS $$
+DECLARE
+    nome_cliente VARCHAR;
+BEGIN
+    FOREACH nome_cliente IN ARRAY nomes
+    LOOP
+        INSERT INTO tb_cliente(nome)
+        VALUES(nome_cliente);
+
+    END LOOP;
+    mensagem := format('Os clientes %s foram cadastrados', array_to_string(nomes, ', '));
+END;
+$$;
+---------------------------------------------------------------------------------
+DO $$
+DECLARE
+    retorno VARCHAR;
+BEGIN
+    CALL sp_cadastra_clientes(
+        retorno,
+        'Giovanna',
+        'Marisa',
+        'Kaique'
+    );
+    RAISE NOTICE '%', retorno;
+END;
+$$;
+
