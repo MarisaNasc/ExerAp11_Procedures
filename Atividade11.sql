@@ -146,3 +146,33 @@ END;
 $$;
 
 CALL sp_total_pedidos(6);
+
+---------------------------------------------------------------------------------------------------------
+-- 1.4 Adicione um procedimento ao sistema do restaurante. 
+
+CREATE OR REPLACE PROCEDURE sp_total_pedidos_inout(
+    INOUT p_cod_cliente INT
+) LANGUAGE plpgsql
+AS $$
+DECLARE 
+    cod_cliente_aux INT;
+BEGIN 
+    cod_cliente_aux := $1;
+    SELECT COUNT(*)
+    FROM tb_pedido p
+    WHERE p.cod_cliente = cod_cliente_aux
+    INTO $1;
+    RAISE NOTICE 'Cliente possui % pedidos.', $1;
+END;
+$$;
+---------------------------------------------------------------------------
+DO $$
+DECLARE
+cod_cliente INT := 6;
+BEGIN
+    RAISE NOTICE 'Código do cliente antes: %', cod_cliente;
+    CALL sp_total_pedidos_inout(cod_cliente);
+    RAISE NOTICE 'Total de pedidos do cliente %', cod_cliente;
+END;
+$$;
+----------------------------------------------------------------------------------------------------
