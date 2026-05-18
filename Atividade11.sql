@@ -123,3 +123,26 @@ $$;
 CALL sp_total_pedidos(6);
 
 SELECT * FROM tb_cliente
+------------------------------------------------------------------------------------------------------
+-- 1.3 Reescreva o exercício 1.2 de modo que o total de pedidos seja armazenado em uma
+-- variável de saída (OUT).
+
+CREATE OR REPLACE PROCEDURE sp_total_pedidos_out(
+    IN p_cod_cliente INT,
+    OUT total_pedidos INT
+
+) LANGUAGE plpgsql
+AS $$
+DECLARE 
+    total_pedidos INT;
+BEGIN 
+    SELECT COUNT(*)
+    FROM tb_pedido p
+    WHERE p.cod_cliente = $1
+    INTO $2;
+
+    RAISE NOTICE 'Cliente % possui % pedidos.', $1, $2;
+END;
+$$;
+
+CALL sp_total_pedidos(6);
