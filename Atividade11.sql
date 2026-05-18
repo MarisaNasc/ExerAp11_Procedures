@@ -1,5 +1,6 @@
 -- Active: 1773179145047@@127.0.0.1@5432@prog_bdi
 ---1.1 Adicione uma tabela de log ao sistema do restaurante. Ajuste cada procedimento para que ele registreCREATE TABLE tb_log(
+-- 1.6 realizado ao decorrer do scrpit
     cod_log SERIAL PRIMARY KEY,
     data_operacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     nome_procedure VARCHAR(200)
@@ -81,26 +82,26 @@ BEGIN
 	CALL sp_calcular_troco(troco, pagamento, valor_total);
 END;
 $$;
-----------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
 -- 1.2 Adicione um procedimento ao sistema do restaurante.
 
--- CREATE OR REPLACE PROCEDURE sp_total_pedidos(
---     IN p_cod_cliente INT 
--- ) LANGUAGE plpgsql
--- AS $$
--- DECLARE 
---     total_pedidos INT;
--- BEGIN 
---     SELECT COUNT(p.cod_pedido)
---     FROM tb_pedido p
---     JOIN tb_cliente c
---         ON (c.cod_cliente = p.cod_cliente)
---     WHERE c.cod_cliente = $1
---     INTO total_pedidos;
+CREATE OR REPLACE PROCEDURE sp_total_pedidos(
+    IN p_cod_cliente INT 
+) LANGUAGE plpgsql
+AS $$
+DECLARE 
+    total_pedidos INT;
+BEGIN 
+    SELECT COUNT(p.cod_pedido)
+    FROM tb_pedido p
+    JOIN tb_cliente c
+        ON (c.cod_cliente = p.cod_cliente)
+    WHERE c.cod_cliente = $1
+    INTO total_pedidos;
 
---     RAISE NOTICE 'Cliente % possui % pedidos.', $1, total_pedidos;
--- END;
--- $$;
+    RAISE NOTICE 'Cliente % possui % pedidos.', $1, total_pedidos;
+END;
+$$;
 
 CREATE OR REPLACE PROCEDURE sp_total_pedidos(
     IN p_cod_cliente INT 
@@ -122,88 +123,3 @@ $$;
 CALL sp_total_pedidos(6);
 
 SELECT * FROM tb_cliente
------------------------------------------------------------------------------------------------------
--- 1.3 Reescreva o exercício 1.2 de modo que o total de pedidos seja armazenado em uma
--- variável de saída (OUT).
-
-CREATE OR REPLACE PROCEDURE sp_total_pedidos_out(
-    IN p_cod_cliente INT,
-    OUT total_pedidos INT
-
-) LANGUAGE plpgsql
-AS $$
-DECLARE 
-    total_pedidos INT;
-BEGIN 
-    SELECT COUNT(*)
-    FROM tb_pedido p
-    WHERE p.cod_cliente = $1
-    INTO $2;
-
-    RAISE NOTICE 'Cliente % possui % pedidos.', $1, $2;
-END;
-$$;
-
-CALL sp_total_pedidos(6);
----------------------------------------------------------------------------------------------------------
--- 1.4 Adicione um procedimento ao sistema do restaurante. 
-
-CREATE OR REPLACE PROCEDURE sp_total_pedidos_inout(
-    INOUT p_cod_cliente INT
-) LANGUAGE plpgsql
-AS $$
-DECLARE 
-    cod_cliente_aux INT;
-BEGIN 
-    cod_cliente_aux := $1;
-    SELECT COUNT(*)
-    FROM tb_pedido p
-    WHERE p.cod_cliente = cod_cliente_aux
-    INTO $1;
-    RAISE NOTICE 'Cliente possui % pedidos.', $1;
-END;
-$$;
----------------------------------------------------------------------------
-DO $$
-DECLARE
-cod_cliente INT := 6;
-BEGIN
-    RAISE NOTICE 'Código do cliente antes: %', cod_cliente;
-    CALL sp_total_pedidos_inout(cod_cliente);
-    RAISE NOTICE 'Total de pedidos do cliente %', cod_cliente;
-END;
-$$;
-----------------------------------------------------------------------------------------------------
--- 1.5 Adicione um procedimento ao sistema do restaurante. 
-CREATE OR REPLACE PROCEDURE sp_cadastra_clientes(
-   OUT mensagem VARCHAR,
-   VARIADIC nomes VARCHAR []
-) LANGUAGE plpgsql
-AS $$
-DECLARE
-    nome_cliente VARCHAR;
-BEGIN
-    FOREACH nome_cliente IN ARRAY nomes
-    LOOP
-        INSERT INTO tb_cliente(nome)
-        VALUES(nome_cliente);
-
-    END LOOP;
-    mensagem := format('Os clientes %s foram cadastrados', array_to_string(nomes, ', '));
-END;
-$$;
----------------------------------------------------------------------------------
-DO $$
-DECLARE
-    retorno VARCHAR;
-BEGIN
-    CALL sp_cadastra_clientes(
-        retorno,
-        'Giovanna',
-        'Marisa',
-        'Kaique'
-    );
-    RAISE NOTICE '%', retorno;
-END;
-$$;
-
